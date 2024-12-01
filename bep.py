@@ -139,7 +139,6 @@ st.set_page_config(
     page_icon="📊",
     layout="centered",
     initial_sidebar_state="expanded",
-    theme="dark"
 )
 
 st.title("📊 Break-Even Point Analysis Tool")
@@ -159,7 +158,8 @@ with col1:
         min_value=0.0,
         value=110.0,
         step=1.0,
-        help="The amount of revenue generated per unit"
+        help="The amount of revenue generated per unit",
+        key="revenue_input"
     )
 
 with col2:
@@ -168,7 +168,8 @@ with col2:
         min_value=0.0,
         value=90.0,
         step=1.0,
-        help="The variable cost associated with each unit"
+        help="The variable cost associated with each unit",
+        key="variable_cost_input"
     )
 
 with col3:
@@ -177,8 +178,19 @@ with col3:
         min_value=0.0,
         value=15000.0,
         step=100.0,
-        help="Total fixed costs that don't vary with the number of units"
+        help="Total fixed costs that don't vary with the number of units",
+        key="fixed_cost_input"
     )
+
+# Expected sales input moved below the chart
+expected_sales = st.number_input(
+    "Expected Sales Units",
+    min_value=0,
+    value=100,
+    step=1,
+    help="Enter the expected number of units to be sold",
+    key="expected_sales_input"
+)
 
 # Validate inputs
 if revenue <= 0:
@@ -192,6 +204,32 @@ elif fixed_cost < 0:
 else:
     # Calculate and display results
     fig, results = calculate_bep_plotly(revenue, variable_cost, fixed_cost)
+
+    # Add reference line for expected sales
+    if expected_sales > 0:  # Ensure expected_sales is valid before using it
+        fig.add_vline(
+            x=expected_sales,
+            line=dict(color='orange', dash='dash', width=2),
+            annotation_text=f"Expected Sales: {expected_sales} units",
+            annotation_position="top"
+        )
+
+    # Display the plot
+    st.plotly_chart(fig, use_container_width=True)
+
+    # Calculate expected revenue, cost, and profit
+    if expected_sales > 0:  # Ensure expected_sales is valid before calculations
+        expected_revenue = expected_sales * revenue
+        expected_cost = fixed_cost + (expected_sales * variable_cost)
+        expected_profit = expected_revenue - expected_cost
+
+        # Display expected revenue, cost, and profit
+        st.subheader("📈 Expected Revenue, Cost, and Profit")
+        st.metric("Expected Revenue", f"${format_currency(expected_revenue)}")
+        st.metric("Expected Cost", f"${format_currency(expected_cost)}")
+        st.metric("Expected Profit", f"${format_currency(expected_profit)}")
+    else:
+        st.warning("Please enter a valid expected sales quantity.")
 
     # Display results
     st.subheader("📊 Break-Even Analysis Results")
@@ -217,9 +255,6 @@ else:
             "Contribution Margin Ratio", 
             f"{format_currency(results['contribution_margin_ratio'])}%"
         )
-
-    # Display the plot
-    st.plotly_chart(fig, use_container_width=True)
 
     # Add explanatory notes
     st.markdown("""
