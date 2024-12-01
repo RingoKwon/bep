@@ -137,7 +137,9 @@ def calculate_bep_plotly(revenue_per_unit, variable_cost_per_unit, fixed_costs):
 st.set_page_config(
     page_title="Break-Even Point Analysis",
     page_icon="📊",
-    layout="wide"
+    layout="centered",
+    initial_sidebar_state="expanded",
+    theme="dark"
 )
 
 st.title("📊 Break-Even Point Analysis Tool")
